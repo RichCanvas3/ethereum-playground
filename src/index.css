@@ -23,7 +23,7 @@ a:hover {
 }
 
 body {
-  margin: 0;
+  margin: 0 auto;
   display: flex;
   min-width: 320px;
   min-height: 100vh;
@@ -47,6 +47,7 @@ button {
 }
 button:hover {
   border-color: #646cff;
+  background-color: #646cff;
 }
 button:focus,
 button:focus-visible {
