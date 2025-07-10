@@ -13,20 +13,26 @@ A playground to experiment with all things Ethereum.
 ### Layer-1 Ethereum
 
 - [Ethereum](https://ethereum.org/en/)
-- [Ethereum Docs](https://ethereum.org/en/developers/docs/)
+  - [Ethereum Docs](https://ethereum.org/en/developers/docs/)
+
+### Layer-2 Scaling Solutions
+
+- [Linea.Build](https://linea.build/)
 
 ### Ethereum Libraries
 
 - [EthersJS v6](https://docs.ethers.org/v6/)
 - [Viem](https://viem.sh/)
 - [Pimlico](https://www.pimlico.io/)
-- [Pimlico Docs](https://docs.pimlico.io/)
+  - [Pimlico Docs](https://docs.pimlico.io/)
 - [Durin.Dev](https://durin.dev/)
 
-### Ethereum Name Service
+### Ethereum Name Service (ENS)
 
-- [ENS](https://ens.domains/)
-- [ENS Docs](https://ens.domains/developers)
+- [ENS](https://app.ens.domains/)
+  - [ENS Docs](https://ens.domains/developers)
+  - [ENS Deployments](https://docs.ens.domains/learn/deployments/)
+- [ENS Sepolia](https://sepolia.app.ens.domains/)
 - [ENSv2](https://ens.domains/ensv2)
 
 ### Wallets
@@ -36,24 +42,14 @@ A playground to experiment with all things Ethereum.
   - [MetaMask Delegation Toolkit (DTK)](https://metamask.io/developer/delegation-toolkit)
   - [MetaMask Snapshots (Snaps)](https://metamask.io/developer/snaps)
 
+### Faucets
+
+- [Google Ethereum Sepolia Faucet](https://cloud.google.com/application/web3/faucet/ethereum/sepolia)
+- [Circle USDC Faucet](https://faucet.circle.com/)
+
 ### Languages
 
 - [Solidity](https://soliditylang.org/)
-
-### Layer-2 Scaling Solutions
-
-- [Linea.Build](https://linea.build/)
-
-## Topics
-
-- Smart Contracts
-  - Deploying Smart Contracts
-
-## Important Links
-
-- [Google Ethereum Sepolia Faucet](https://cloud.google.com/application/web3/faucet/ethereum/sepolia)
-- [ENS Sepolia Website](https://sepolia.app.ens.domains/)
-- [ENS Sepolia Deployment Contract and Addresses](https://docs.ens.domains/learn/deployments/)
 
 ## Local Setup
 
