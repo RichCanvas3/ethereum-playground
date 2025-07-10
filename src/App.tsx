@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { hexlify, parseEther, formatEther, ethers } from 'ethers'
+import { keccak256 } from 'ethers/crypto'
+import { toUtf8Bytes } from 'ethers/utils'
+
 import './App.css'
 
 import ETHRegistrarControllerABI from './abis/ETHRegistrarController.json'
 import BaseRegistrarABI from './abis/BaseRegistrarImplementation.json'
 import PublicResolverABI from './abis/PublicResolver.json'
+import contractJson from './contracts/SimpleStorage.json'
 
 // User Information
 const alchemyKey = import.meta.env.VITE_ALCHEMY_API_KEY
@@ -171,6 +175,36 @@ function App() {
     }
   }
 
+  function transferOwnership() {
+    const rawLabel = 'grantdavis303.eth'
+    const formattedLabel = rawLabel.replace('.eth', '')
+
+    console.log('Raw Label: ', rawLabel)
+    console.log('Formatted Label: ', formattedLabel)
+
+    const tokenId = keccak256(toUtf8Bytes(formattedLabel))
+
+    console.log('Token ID: ', tokenId)
+
+    const registrar = new ethers.Contract(
+      '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85',
+      ['function safeTransferFrom(address from, address to, uint256 tokenId) external'],
+      signer
+    )
+
+    transfer()
+
+    async function transfer() {
+      await registrar.safeTransferFrom(
+        '0xfb3cE5D01e0f33f41DbB39035dB9745962F1f968', // Old owner
+        wallet.address, // New owner
+        tokenId
+      )
+    }
+
+    console.log('Transfer successful!')
+  }
+
   return (
     <div className='contentContainer'>
       <h1 className='mainHeader'> Ethereum Playground </h1>
@@ -180,6 +214,7 @@ function App() {
       {/* User Information */}
       <div className='block user'>
         <p><span className='bold'>Wallet Public Address:</span> {wallet.address} </p>
+        <p><span className='bold'>Wallet Private Key:</span> {walletPrivateKey} </p>
       </div>
 
       <h2> Unit Conversion </h2>
@@ -286,6 +321,30 @@ function App() {
         </div>
 
         <p><span className='bold'>Message:</span> {ensDomainNameMessage} </p>
+      </div>
+
+      {/* Transfer Ownership */}
+      <div className='block'>
+        <h2> Transfer Ownership </h2>
+
+        <div>
+          <button onClick={() => {transferOwnership()}}> Transfer Ownership </button>
+        </div>
+      </div>
+
+      <h2> Features </h2>
+
+      {/* To Add */}
+      <div className='block user'>
+        <h2> To Add </h2>
+
+        <ul>
+          <li> Add ENS subdomains to an ENS domain </li>
+          <li> Add Text Records to an ENS domain </li>
+          <li> Resolve All Text Records from ENS domain </li>
+          <li> Resolve Address from an SCA ENS domain </li>
+          <li> Manually write and deploy smart contracts using Solidity </li>
+        </ul>
       </div>
     </div>
   )
