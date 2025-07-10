@@ -1,69 +1,92 @@
-# React + TypeScript + Vite
+# Ethereum Playground
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A playground to experiment with all things Ethereum.
 
-Currently, two official plugins are available:
+## Definitions
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**Ethereum** - A decentralized blockchain with smart contract functionality.
 
-## Expanding the ESLint configuration
+**Smart Contract** - A program that runs on the Ethereum blockchain. It's a collection of code and data that lives at a specific address on the Ethereum blockchain. The program executes when certain conditions are met, removing the need for a middleman.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Links
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Layer-1 Ethereum
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+- [Ethereum](https://ethereum.org/en/)
+- [Ethereum Docs](https://ethereum.org/en/developers/docs/)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Ethereum Libraries
+
+- [EthersJS v6](https://docs.ethers.org/v6/)
+- [Viem](https://viem.sh/)
+- [Pimlico](https://www.pimlico.io/)
+- [Pimlico Docs](https://docs.pimlico.io/)
+- [Durin.Dev](https://durin.dev/)
+
+### Ethereum Name Service
+
+- [ENS](https://ens.domains/)
+- [ENS Docs](https://ens.domains/developers)
+- [ENSv2](https://ens.domains/ensv2)
+
+### Wallets
+
+- [MetaMask](https://metamask.io/)
+  - [MetaMask Software Development Kit (SDK)](https://metamask.io/developer/sdk)
+  - [MetaMask Delegation Toolkit (DTK)](https://metamask.io/developer/delegation-toolkit)
+  - [MetaMask Snapshots (Snaps)](https://metamask.io/developer/snaps)
+
+### Languages
+
+- [Solidity](https://soliditylang.org/)
+
+### Layer-2 Scaling Solutions
+
+- [Linea.Build](https://linea.build/)
+
+## Topics
+
+- Smart Contracts
+  - Deploying Smart Contracts
+
+## Important Links
+
+- [Google Ethereum Sepolia Faucet](https://cloud.google.com/application/web3/faucet/ethereum/sepolia)
+- [ENS Sepolia Website](https://sepolia.app.ens.domains/)
+- [ENS Sepolia Deployment Contract and Addresses](https://docs.ens.domains/learn/deployments/)
+
+## Local Setup
+
+1. Clone the Repo
+
+```
+git clone git@github.com:RichCanvas3/ethereum-playground.git
+cd ethereum-playground
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Create Environment Variables
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```
+touch .env
+```
+Required Environment Variables
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+VITE_ALCHEMY_API_KEY=...
+VITE_WALLET_PRIVATE_KEY=...
+```
+
+3. Install Dependencies
+
+```
+npm install
+```
+
+4. Build and Run the Application
+
+```
+open http://localhost:5173/
+
+npm run build
+npm run dev
 ```
