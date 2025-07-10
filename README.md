@@ -40,7 +40,7 @@ A playground to experiment with all things Ethereum.
 - [MetaMask](https://metamask.io/)
   - [MetaMask Software Development Kit (SDK)](https://metamask.io/developer/sdk)
   - [MetaMask Delegation Toolkit (DTK)](https://metamask.io/developer/delegation-toolkit)
-  - [MetaMask Snapshots (Snaps)](https://metamask.io/developer/snaps)
+  - [MetaMask Snaps](https://metamask.io/developer/snaps)
 
 ### Faucets
 
@@ -50,6 +50,10 @@ A playground to experiment with all things Ethereum.
 ### Languages
 
 - [Solidity](https://soliditylang.org/)
+
+### Other
+
+- [Remix]() - A website used
 
 ## Local Setup
 
