@@ -19,9 +19,14 @@ A playground to experiment with all things Ethereum.
 
 - [Linea.Build](https://linea.build/)
 
+### Etherscan
+
+- [Etherscan Mainnet](https://etherscan.io/)
+- [Etherscan Sepolia Testnet](https://sepolia.etherscan.io/)
+
 ### Ethereum Libraries
 
-- [EthersJS v6](https://docs.ethers.org/v6/)
+- [EthersJS v6](https://docs.ens.domains/learn/protocol/)
 - [Viem](https://viem.sh/)
 - [Pimlico](https://www.pimlico.io/)
   - [Pimlico Docs](https://docs.pimlico.io/)
@@ -30,9 +35,9 @@ A playground to experiment with all things Ethereum.
 ### Ethereum Name Service (ENS)
 
 - [ENS](https://app.ens.domains/)
-  - [ENS Docs](https://ens.domains/developers)
+  - [ENS Docs](https://docs.ens.domains/)
   - [ENS Deployments](https://docs.ens.domains/learn/deployments/)
-- [ENS Sepolia](https://sepolia.app.ens.domains/)
+  - [ENS Sepolia Testnet](https://sepolia.app.ens.domains/)
 - [ENSv2](https://ens.domains/ensv2)
 
 ### Wallets
@@ -53,7 +58,7 @@ A playground to experiment with all things Ethereum.
 
 ### Other
 
-- [Remix]() - A website used
+- [Remix](https://remix-project.org/?lang=en) - A powerful, open source tool that helps you write Solidity contracts straight from the browser
 
 ## Local Setup
 
