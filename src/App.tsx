@@ -1,48 +1,125 @@
 import { useState } from 'react'
-import { hexlify, parseEther, formatEther, ethers } from 'ethers'
+import { hexlify, parseEther, formatEther, ethers, keccak256, toUtf8Bytes, namehash } from 'ethers'
 
 import ENSRegistryABI from './abis/ENSRegistry.json'
-import ETHRegistrarControllerABI from './abis/ETHRegistrarController.json'
 import BaseRegistrarABI from './abis/BaseRegistrarImplementation.json'
+import ETHRegistrarControllerABI from './abis/ETHRegistrarController.json'
+import DNSRegistrarABI from './abis/DNSRegistrar.json'
+import ReverseRegistrarABI from './abis/ReverseRegistrar.json'
 import NameWrapperABI from './abis/NameWrapper.json'
 import PublicResolverABI from './abis/PublicResolver.json'
+import UniversalResolverABI from './abis/UniversalResolver.json'
+
+import TestContractABI from './contracts/HelloWorld.json'
 
 import './App.css'
 
-// Importing User Keys from the ENV File
-const alchemyKey = import.meta.env.VITE_ALCHEMY_API_KEY
-const walletPrivateKey = import.meta.env.VITE_WALLET_PRIVATE_KEY
+// Come back and update types
+let provider: any
+let signer: any
+let network: any
 
-// Creating a Wallet, Provider, and Signer
-const provider = new ethers.JsonRpcProvider(`https://eth-sepolia.g.alchemy.com/v2/${alchemyKey}`)
-const wallet = new ethers.Wallet(walletPrivateKey, provider);
-const signer = wallet.connect(provider)
+let ensRegistry: any
+let baseRegistrar: any
+let ethRegistrarController: any
+let dnsRegistrar: any
+let reverseRegistrar: any
+let nameWrapper: any
+let publicResolver: any
+let universalResolver: any
 
-// Contract Addresses on Sepolia https://docs.ens.domains/learn/deployments
-const ETHRegistrarControllerAddress = '0xfb3cE5D01e0f33f41DbB39035dB9745962F1f968'
-const BaseRegistrarAddress = '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'
-const PublicResolverAddress = '0xE99638b40E4Fff0129D56f03b55b6bbC4BBE49b5'
+async function updateProviderServer() {
+  if (typeof window.ethereum === 'undefined') {
+    throw new Error('MetaMask is not installed.')
+  }
 
-const NameWrapperAddress = '0x0635513f179D50A207757E05759CbD106d7dFcE8'
-const ENSRegistryAddress = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e'
+  await window.ethereum.request({
+    method: 'eth_requestAccounts'
+  });
 
-// Create Contracts
-const publicResolver = new ethers.Contract(
-  PublicResolverAddress,
-  PublicResolverABI.abi,
-  signer // provider
-)
+  provider = new ethers.BrowserProvider(window.ethereum)
+  signer = await provider.getSigner()
+  network = await provider.getNetwork()
+}
 
-const baseRegistrar = new ethers.Contract(
-  BaseRegistrarAddress,
-  BaseRegistrarABI.abi,
-  provider
-)
+async function createEnsContracts() {
+  // Create ENS Contracts: new ethers.Contract(address, abi, signerOrProvider)
+
+  // Contract Addresses (Sepolia: https://docs.ens.domains/learn/deployments)
+  const ENSRegistryAddress = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e'
+  const BaseRegistrarAddress = '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'
+  const ETHRegistrarControllerAddress = '0xfb3cE5D01e0f33f41DbB39035dB9745962F1f968'
+  const DNSRegistrarAddress = '0x5a07C75Ae469Bf3ee2657B588e8E6ABAC6741b4f'
+  const ReverseRegistrarAddress = '0xA0a1AbcDAe1a2a4A2EF8e9113Ff0e02DD81DC0C6'
+  const NameWrapperAddress = '0x0635513f179D50A207757E05759CbD106d7dFcE8'
+  const PublicResolverAddress = '0xE99638b40E4Fff0129D56f03b55b6bbC4BBE49b5'
+  const UniversalResolverAddress = '0xb7B7DAdF4D42a08B3eC1d3A1079959Dfbc8CFfCC'
+
+  ensRegistry = new ethers.Contract(
+    ENSRegistryAddress,
+    ENSRegistryABI.abi,
+    signer
+  );
+
+  baseRegistrar = new ethers.Contract(
+    BaseRegistrarAddress,
+    BaseRegistrarABI.abi,
+    signer
+  )
+
+  ethRegistrarController = new ethers.Contract(
+    ETHRegistrarControllerAddress,
+    ETHRegistrarControllerABI.abi,
+    signer
+  )
+
+  dnsRegistrar = new ethers.Contract(
+    DNSRegistrarAddress,
+    DNSRegistrarABI.abi,
+    signer
+  )
+
+  reverseRegistrar = new ethers.Contract(
+    ReverseRegistrarAddress,
+    ReverseRegistrarABI.abi,
+    signer
+  )
+
+  nameWrapper = new ethers.Contract(
+    NameWrapperAddress,
+    NameWrapperABI.abi,
+    signer
+  )
+
+  publicResolver = new ethers.Contract(
+    PublicResolverAddress,
+    PublicResolverABI.abi,
+    signer
+  )
+
+  universalResolver = new ethers.Contract(
+    UniversalResolverAddress,
+    UniversalResolverABI.abi,
+    signer
+  )
+}
+
+// Create Universal Variables
+await updateProviderServer()
+await createEnsContracts()
+
+// // Test Contract
+// const testContract = new ethers.Contract(
+//   '0x78495eF4Cb1B00C307Eca9e6FDB4bF3569400573',
+//   TestContractABI.abi,
+//   signer
+// )
+// console.log("Stored message in test contract:", await testContract.message());
 
 function App() {
-  // Converting ETH and Wei
+  // Unit Conversion
   const [ethNum, setEthNum] = useState('')
-  const [parsedEth, setParsedEth] = useState(0n)
+  const [parsedEth, setParsedEth] = useState('0')
   const [weiNum, setWeiNum] = useState('')
   const [parsedWei, setParsedWei] = useState('0')
 
@@ -51,68 +128,71 @@ function App() {
 
   // Wallet Information
   const [address, setAddress] = useState('')
-  const [accountBalance, setAccountBalance] = useState(0n)
+  const [accountBalanceWei, setAccountBalanceWei] = useState(0n)
+  const [accountBalanceEth, setAccountBalanceEth] = useState('0')
 
   // ENS Information
   const [ensName, setEnsName] = useState('')
   const [ensNameAddress, setEnsNameAddress] = useState('')
   const [ensDomainName, setEnsDomainName] = useState('')
-  const [ensDomainNameMessage, setEnsDomainNameMessage] = useState('')
+  const [registerEnsDomainNameMessage, setRegisterEnsDomainNameMessage] = useState('')
+
   const [resolvedEnsName, setResolvedEnsName] = useState('')
   const [resolvedEnsNameMessage, setResolvedEnsNameMessage] = useState('')
+  const [resolvedTextRecordName, setResolvedTextRecordName] = useState('')
+  const [resolvedTextRecordKey, setResolvedTextRecordKey] = useState('')
+  const [resolvedTextRecordMessage, setResolvedTextRecordMessage] = useState('')
 
   const [textRecordName, setTextRecordName] = useState('')
   const [textRecordKey, setTextRecordKey] = useState('')
   const [textRecordValue, setTextRecordValue] = useState('')
+  const [textRecordMessage, setTextRecordMessage] = useState('')
 
+  const [wrappedDomainName, setWrappedDomainName] = useState('')
+
+  const [subname, setSubname] = useState('')
+  const [domainName, setDomainName] = useState('')
+
+  // Show Information
   function showInformation() {
-    // Importing User Keys from the ENV File
-    console.log('Alchemy API Key: ', alchemyKey)
-    console.log('Wallet Private Key: ', walletPrivateKey)
-
-    // Creating a Wallet
-    console.log('Wallet: ', wallet)
-    console.log('Wallet Address: ', wallet.address)
-
     // Creating a Provider and Signer
     console.log('Provider: ', provider)
+    console.log('Provider MetaMask?: ', window.ethereum.isMetaMask)
     console.log('Signer: ', signer)
+    console.log('Signer Address: ', signer.address)
+    console.log('Network Name: ', network.name)
+    console.log('Network Chain ID: ', network.chainId)
 
-    // Contracts on Sepolia
-    console.log('ETHRegistrarControllerAddress: ', ETHRegistrarControllerAddress)
-    console.log('BaseRegistrarAddress: ', BaseRegistrarAddress)
-    console.log('PublicResolverAddress: ', PublicResolverAddress)
+    // Created ENS Contracts
+    const ensContracts = {
+      'ENS Registry': ensRegistry,
+      'Base Registrar': baseRegistrar,
+      'ETH Registrar Controller': ethRegistrarController,
+      'DNS Registrar': dnsRegistrar,
+      'Reverse Registrar': reverseRegistrar,
+      'Name Wrapper': nameWrapper,
+      'Public Resolver': publicResolver,
+      'Universal Resolver': universalResolver
+    }
 
-    // Imported ABIs
-    console.log('ETHRegistrarControllerABI: ', ETHRegistrarControllerABI)
-    console.log('BaseRegistrarABI: ', BaseRegistrarABI)
-    console.log('PublicResolverABI: ', PublicResolverABI)
-
-    // Create a Public Resolver
-    console.log('Public Resolver: ', publicResolver)
+    console.log('ENS Contracts: ', ensContracts)
   }
 
   // Unit Conversion
-  function parseEth(num: string) {
-    const number = num.toString()
-    const parsedEthNum = parseEther(number)
+  function convertEthToWei(num: string) {
+    const formattedWei = parseEther(num).toString()
 
-    setParsedEth(parsedEthNum)
-
-    return parsedEthNum
+    return setParsedEth(formattedWei)
   }
 
-  function formatWei(num: string) {
-    const number = num.toString()
-    const parsedWeiNum = formatEther(number)
+  function convertWeiToEth(num: string) {
+    const formattedEth = formatEther(num)
 
-    setParsedWei(parsedWeiNum)
-
-    return parsedWeiNum
+    return setParsedWei(formattedEth)
   }
 
-  // Blockchain
-  async function checkBlockNumber() {
+  // Blockchain Information
+  async function getBlockNumber() {
     const blockNumber = await provider.getBlockNumber();
 
     setBlockNumber(blockNumber)
@@ -120,27 +200,29 @@ function App() {
     return blockNumber
   }
 
-  // Wallets
+  // Wallet Information
   async function getAccountBalance(account: string) {
-    const balance = await provider.getBalance(account)
+    const balanceWei = await provider.getBalance(account)
+    const balanceEth = formatEther(balanceWei)
 
-    setAccountBalance(balance)
+    setAccountBalanceWei(balanceWei)
+    setAccountBalanceEth(balanceEth)
 
-    return balance
+    return {
+      'wei': balanceWei,
+      'eth': balanceEth
+    }
   }
 
-  // ENS
-  function createEnsSepoliaDeployment() {
-    if (ensDomainName.includes('.eth')) {
-      setEnsDomainNameMessage('This name includes ".eth". which is not necessary. Please remove and try again.')
-
-      return
+  // MetaMask
+  async function createEnsDomainName(ensName: string) {
+    if (!ensName.includes('.eth')) {
+      return setRegisterEnsDomainNameMessage('This name does not include ".eth". which is necessary. Please add and try again.')
     }
 
-    setEnsDomainNameMessage('Name is valid. Registering ENS domain name...')
+    setRegisterEnsDomainNameMessage('Registering ENS domain name...')
 
-    // Registration Data
-    const name = ensDomainName
+    const name = getLabel(ensName)
     const duration = 31536000 // 60 * 60 * 24 * 365
     const secret = hexlify(ethers.randomBytes(32))
 
@@ -148,54 +230,42 @@ function App() {
     console.log('Duration: ', duration)
     console.log('Secret: ', secret)
 
-    setEnsDomainNameMessage(`Creating domain name for ${name}.eth...`)
+    setRegisterEnsDomainNameMessage(`Creating domain name for ${name}.eth...`)
 
     createName()
 
     async function createName() {
       const registrationObject = {
         label: name,
-        owner: await signer.getAddress(), // Your personal wallet is now the owner
+        owner: signer.address,
         duration: duration,
         secret: secret,
-        resolver: PublicResolverAddress, // '0x0000000000000000000000000000000000000000' = null, meaning no resolver is set
+        resolver: publicResolver.target, // '0x0000000000000000000000000000000000000000' = null, meaning no resolver is set
         data: [],
         reverseRecord: 1, // 0 reverse record flag set to 0
         referrer: '0x0000000000000000000000000000000000000000000000000000000000000000'
       }
 
-      console.log('Registration Object: ', registrationObject)
-
-      const controller = new ethers.Contract(
-        ETHRegistrarControllerAddress,
-        ETHRegistrarControllerABI.abi,
-        signer
-      )
-
-      console.log('Controller: ', controller)
-
-      const commitment = await controller.makeCommitment(registrationObject)
-
-      console.log('Commitment: ', commitment)
+      const commitment = await ethRegistrarController.makeCommitment(registrationObject)
 
       console.log('Sending commit...')
-      setEnsDomainNameMessage('Sending commit...')
+      setRegisterEnsDomainNameMessage('Sending commit...')
 
-      const tx1 = await controller.commit(commitment)
+      const tx1 = await ethRegistrarController.commit(commitment)
       await tx1.wait()
 
       console.log('Commit sent. Waiting 60 seconds...')
-      setEnsDomainNameMessage('Commit sent. Waiting 60 seconds...')
+      setRegisterEnsDomainNameMessage('Commit sent. Waiting 60 seconds...')
 
       await new Promise ((r) => setTimeout(r, 60000))
 
       console.log('Waited 60 seconds!')
-      setEnsDomainNameMessage('Waited 60 seconds!')
+      setRegisterEnsDomainNameMessage('Waited 60 seconds!')
 
       console.log('Registering...')
-      setEnsDomainNameMessage('Registering...')
+      setRegisterEnsDomainNameMessage('Registering...')
 
-      const tx2 = await controller.register(registrationObject, {
+      const tx2 = await ethRegistrarController.register(registrationObject, {
         value: BigInt('3125000000003490') // 0.003125 ETH
       })
 
@@ -203,35 +273,25 @@ function App() {
 
       // ENS Domain Name Created Successfully
       console.log(`ENS name "${name}.eth" registered!`)
-      setEnsDomainNameMessage(`ENS name "${name}.eth" registered!`)
+      setRegisterEnsDomainNameMessage(`ENS name "${name}.eth" registered!`)
 
       console.log(`See ENS profile here: https://sepolia.app.ens.domains/${name}.eth`)
-      setEnsDomainNameMessage(`See ENS profile here: https://sepolia.app.ens.domains/${name}.eth`)
-
-      // Verify Ownership
-
-      // const baseRegistrar = new ethers.Contract(
-      //   BaseRegistrarAddress,
-      //   BaseRegistrarABI.abi,
-      //   provider
-      // )
-
-      // const tokenId = ethers.keccak256(ethers.toUtf8Bytes(name))
-      // const owner = await baseRegistrar.ownerOf(tokenId)
-
-      // console.log("Owner of domain:", owner)
+      setRegisterEnsDomainNameMessage(`See ENS profile here: https://sepolia.app.ens.domains/${name}.eth`)
     }
   }
 
-  async function allowResolution(ensName: string) {
+  async function allowEnsDomainNameResolution(ensName: string) {
+    if (!ensName.includes('.eth')) {
+      return setResolvedEnsNameMessage('This name does not include ".eth". which is necessary. Please add and try again.')
+    }
+
+    console.log('Allowing resolution...')
+    setResolvedEnsNameMessage('Allowing resolution...')
+
     const node = ethers.namehash(ensName)
-    const yourAddress = await signer.getAddress()
 
-    console.log('Node: ', node)
-    console.log('Your Address: ', yourAddress)
-
-    const tx3 = await publicResolver['setAddr'](node, yourAddress)
-    await tx3.wait()
+    const tx = await publicResolver['setAddr'](node, signer.address)
+    await tx.wait()
 
     console.log('Address record set.')
     setResolvedEnsNameMessage('Address record set.')
@@ -242,16 +302,7 @@ function App() {
     setResolvedEnsNameMessage('Address record set successfully! You should now be able to resolve the name.')
   }
 
-  async function resolveName(ensName: string) {
-    // const namehash = ethers.namehash(ensName)
-
-    // console.log(namehash)
-    // console.log('Public Resolver: ', publicResolver)
-
-    // const resolvedAddress = await publicResolver['addr(bytes32)'](namehash)
-
-    // console.log("Resolved address:", resolvedAddress)
-
+  async function resolveEnsDomainName(ensName: string) {
     const address = await provider.resolveName(ensName)
 
     if (address) {
@@ -267,54 +318,106 @@ function App() {
     }
   }
 
-  async function setTextRecord(ensName: string) {
-    console.log('Public Resolver: ', publicResolver)
+  async function resolveTextRecord(ensName: string, key: string) {
+    console.log(`Getting ${key} text record for ${ensName}...`)
+    setResolvedTextRecordMessage(`Getting ${key} text record for ${ensName}...`)
+
+    const resolver = await provider.getResolver(ensName)
+
+    if (resolver) {
+      const value = await resolver.getText(key)
+
+      if (value) {
+        console.log(`The ${key} text record has a value of ${value}.`)
+        setResolvedTextRecordMessage(`The ${key} text record has a value of ${value}.`)
+      } else {
+        console.log(`The key: ${key} does not have a stored value or does not exist.`)
+        setResolvedTextRecordMessage(`The key: ${key} does not have a stored value or does not exist.`)
+      }
+    } else {
+      console.log('Resolver is null. Try again.')
+      setResolvedTextRecordMessage('Resolver is null. Try again.')
+    }
+  }
+
+  async function createTextRecord(ensName: string) {
+    console.log('Creating text record...')
+    setTextRecordMessage('Creating text record...')
 
     const node = ethers.namehash(ensName)
-
-    console.log('node: ', node)
-    console.log('Text Record Key: ', textRecordKey)
-    console.log('Text Record Value: ', textRecordValue)
-
     const tx = await publicResolver.setText(node, textRecordKey, textRecordValue);
 
     await tx.wait();
 
-    console.log(`Set Text Record: ${textRecordKey} = ${textRecordValue}`);
-
-    // Verification
-    const stored = await publicResolver.text(node, textRecordKey);
-
-    console.log(`Value for ${textRecordKey}:`, stored);
+    console.log(`Text record created: ${textRecordKey} = ${textRecordValue}`)
+    setTextRecordMessage(`Text record created: ${textRecordKey} = ${textRecordValue}`)
   }
 
-  async function wrapName() {
-    const label = 'richcanvas5.eth'.split('.')[0]
+  async function wrapEnsDomainName(ensName: string) {
+    const label = getLabel(ensName)
+    const tokenId = getTokenId(ensName)
+    const owner = await baseRegistrar.ownerOf(tokenId);
 
-    console.log('Wrapping: ', name)
+    console.log('ENS Domain Name: ', ensName)
+    console.log('Label: ', label)
+    console.log('Token ID: ', tokenId)
+    console.log('Owner of Token ID: ', owner);
 
-    const nameWrapper = new ethers.Contract(NameWrapperAddress, NameWrapperABI.abi, wallet);
-    const ensRegistry = new ethers.Contract(ENSRegistryAddress, ENSRegistryABI.abi, provider);
-
-    console.log('Name Wrapper: ', nameWrapper)
-    console.log('ENS Registry: ', ensRegistry)
-
-    console.log("Label:", label)
-    console.log("Wallet Address:", wallet.address)
+    console.log('NameWrapper Address', nameWrapper.target)
     console.log("Public Resolver:", publicResolver.target)
 
-    const owner = await baseRegistrar.ownerOf('0x079bff3bb7c5120fb6923a4dedc1d5f133c1dcb705aa65716b8ba0f807209593');
-    console.log("Owner: ", owner)
+    await baseRegistrar.setApprovalForAll(nameWrapper.target, true);
 
-    const signer1 = await provider.getSigner();
-    console.log(signer1); // Should match token owner
+    const nameWrapperOwner = await nameWrapper.ownerOf(tokenId);
 
-    const tx = await nameWrapper.wrapETH2LD(label, wallet.address, 0, publicResolver.target);
+    console.log("NameWrapper Owner:", nameWrapperOwner);
+
+    // Wrap ETH Domain Name to 2nd Level Domain
+    const tx = await nameWrapper.wrapETH2LD(
+      label,
+      signer.address,
+      0,
+      publicResolver.target
+    );
+
+    console.log("Transaction Hash:", tx);
 
     console.log("Waiting for transaction to confirm...");
     await tx.wait();
+    console.log(`${ensName} has been wrapped successfully!`);
+  }
 
-    console.log(`${name} has been wrapped!`);
+  async function createSubname(ensName: string, subname: string) {
+    const parentName = ensName
+    const subLabel = subname
+    const subName = `${subLabel}.${parentName}`
+
+    console.log('Parent Name: ', parentName)
+    console.log('Subname: ', subName)
+
+    const parentNode = namehash(parentName)
+
+    await nameWrapper.setSubnodeOwner(
+      parentNode,
+      subLabel,
+      signer.address,
+      0, // Fuses
+      0  // Expiry
+    )
+
+    console.log(`Subname "${subName}" created and owned by ${signer.address}`)
+  }
+
+  // Helper Functions
+  function getTokenId(ensName: string) {
+    const label = getLabel(ensName)
+    const bytes = toUtf8Bytes(label)
+
+    return keccak256(bytes)
+  }
+
+  function getLabel(ensName: string) {
+    return ensName.split('.')[0]
   }
 
   return (
@@ -323,13 +426,12 @@ function App() {
 
       <h2> User Information </h2>
 
-      {/* User Information */}
+      {/* Display Information */}
       <div className='block user'>
-        <p><span className='bold'>Wallet Public Address:</span> {wallet.address} </p>
-        <p><span className='bold'>Wallet Private Key:</span> {walletPrivateKey} </p>
+        <p><span className='bold'>Wallet Public Address:</span> {signer.address} </p>
 
         <div>
-          <button onClick={() => {showInformation()}}> Show Information in Console </button>
+          <button onClick={() => {showInformation()}}> Display Information in Console </button>
         </div>
       </div>
 
@@ -343,7 +445,7 @@ function App() {
         <input type="number" onChange={(e) => setEthNum(e.target.value)} />
 
         <div>
-          <button onClick={() => {parseEth(ethNum)}}> Convert {ethNum} ETH to Wei </button>
+          <button onClick={() => {convertEthToWei(ethNum)}}> Convert {ethNum} ETH to Wei </button>
         </div>
 
         <p><span className='bold'>Converted ETH:</span> {parsedEth} wei </p>
@@ -357,7 +459,7 @@ function App() {
         <input type="number" onChange={(e) => setWeiNum(e.target.value)} />
 
         <div>
-          <button onClick={() => {formatWei(weiNum)}}> Convert {weiNum} Wei to ETH </button>
+          <button onClick={() => {convertWeiToEth(weiNum)}}> Convert {weiNum} Wei to ETH </button>
         </div>
 
         <p><span className='bold'>Converted Wei:</span> {parsedWei} ETH </p>
@@ -370,7 +472,7 @@ function App() {
         <h2> Get Current Block Number </h2>
 
         <div>
-          <button onClick={() => {checkBlockNumber()}}> Check Current Block # </button>
+          <button onClick={() => {getBlockNumber()}}> Check Current Block # </button>
         </div>
 
         <p><span className='bold'>Current Block Number on Sepolia:</span> {blockNumber} </p>
@@ -395,14 +497,15 @@ function App() {
         </div>
 
         <p><span className='bold'>Account Address on Sepolia:</span> {address} </p>
-        <p><span className='bold'>Account Balance on Sepolia:</span> {accountBalance} wei </p>
+        <p><span className='bold'>Account Balance on Sepolia (Wei):</span> {accountBalanceWei} wei </p>
+        <p><span className='bold'>Account Balance on Sepolia (ETH):</span> {accountBalanceEth} ETH </p>
       </div>
 
-      <h2> ENS </h2>
+      <h2> MetaMask </h2>
 
       {/* Register an ENS Domain Name */}
       <div className='block'>
-        <h2> Register an ENS Domain Name </h2>
+        <h2> Register an ENS Domain Name (0.0032 Gas) </h2>
 
         <ul>
           <li> Make sure to change your private key in the .env file if the account already has a registered ENS domain. </li>
@@ -410,33 +513,34 @@ function App() {
           <li> You will have to "allow resolution" below in order to resolve the ENS name. </li>
         </ul>
 
-        <p><span className='bold'>Desired ENS Domain Name:</span></p>
+        <p><span className='bold'> ENS Domain Name (w/ .eth):</span></p>
         <input type="text" onChange={(e) => setEnsDomainName(e.target.value)} />
 
         <div>
-          <button onClick={() => {createEnsSepoliaDeployment()}}> Create ENS Domain Name </button>
+          <button onClick={() => {createEnsDomainName(ensDomainName)}}> Create ENS Domain Name w/ MetaMask </button>
         </div>
 
-        <p><span className='bold'>Message:</span> {ensDomainNameMessage} </p>
-      </div>
+        <p><span className='bold'>Message:</span> {registerEnsDomainNameMessage} </p>
 
-      {/* Allow Resolution for an ENS Domain Name */}
-      <div className='block'>
-        <h2> Allow Resolution for an ENS Domain Name </h2>
+        {/* Allow ENS Domain Name Resolution */}
 
-        <p><span className='bold'>ENS Name:</span></p>
+        <h2> Allow ENS Domain Name Resolution (0.0001 Gas) </h2>
+
+        <p> The process of loading information about a name is called resolution. The resolution process has many parts. Most notably the Registry, multiple Registrars (ETH Registrar, DNS Registrar, Reverse Registrar, etc) and the concept of a Resolver. </p>
+
+        <p><span className='bold'> ENS Domain Name (w/ .eth):</span></p>
         <input type="text" onChange={(e) => setResolvedEnsName(e.target.value)} />
 
         <div>
-          <button onClick={() => {allowResolution(resolvedEnsName)}}> Resolve ENS Name </button>
+          <button onClick={() => {allowEnsDomainNameResolution(resolvedEnsName)}}> Allow ENS Domain Name Resolution </button>
         </div>
 
         <p><span className='bold'>Message:</span> {resolvedEnsNameMessage} </p>
       </div>
 
-      {/* Resolve an ENS Name */}
+      {/* Resolve an ENS Domain Name */}
       <div className='block'>
-        <h2> Resolve an ENS Name </h2>
+        <h2> Resolve an ENS Domain Name </h2>
 
         <p> Resolving an ENS name means to load information about an ENS name, like it's address. </p>
 
@@ -444,24 +548,24 @@ function App() {
           <li> Try it with <i>vitalik.eth</i>. </li>
         </ul>
 
-        <p><span className='bold'>ENS Name to Resolve:</span></p>
+        <p><span className='bold'> ENS Domain Name (w/ .eth):</span></p>
         <input type="text" onChange={(e) => setEnsName(e.target.value)} />
 
         <div>
-          <button onClick={() => {resolveName(ensName)}}> Resolve ENS Name </button>
+          <button onClick={() => {resolveEnsDomainName(ensName)}}> Resolve ENS Name </button>
         </div>
 
-        <p><span className='bold'>Message:</span> {ensNameAddress} </p>
+        <p><span className='bold'>Address:</span> {ensNameAddress} </p>
       </div>
 
-      {/* Set Text Record */}
+      {/* Set a Text Record */}
       <div className='block'>
-        <h2> Set Text Record </h2>
+        <h2> Set Text Record (0.0001 Gas) </h2>
 
         <p> Text records are key-value pairs like email, avatar, and url. </p>
         <p> In order to set text records, the account with the private key must be the owner of the ENS domain name. </p>
 
-        <p><span className='bold'>ENS Name:</span></p>
+        <p><span className='bold'> ENS Domain Name (w/ .eth):</span></p>
         <input type="text" onChange={(e) => setTextRecordName(e.target.value)} />
 
         <p><span className='bold'>Key:</span></p>
@@ -471,28 +575,66 @@ function App() {
         <input type="text" onChange={(e) => setTextRecordValue(e.target.value)} />
 
         <div>
-          <button onClick={() => {setTextRecord(textRecordName)}}> Set Text Record </button>
+          <button onClick={() => {createTextRecord(textRecordName)}}> Set Text Record </button>
         </div>
 
-        <p><span className='bold'>Message:</span> {ensNameAddress} </p>
+        <p><span className='bold'>Message:</span> {textRecordMessage} </p>
+      </div>
+
+      {/* Resolve a Text Record */}
+      <div className='block'>
+        <h2> Resolve a Text Record </h2>
+
+        <p><span className='bold'> ENS Domain Name (w/ .eth):</span></p>
+        <input type="text" onChange={(e) => setResolvedTextRecordName(e.target.value)} />
+
+        <p><span className='bold'>Text Record Key:</span></p>
+        <input type="text" onChange={(e) => setResolvedTextRecordKey(e.target.value)} />
+
+        <div>
+          <button onClick={() => {resolveTextRecord(resolvedTextRecordName, resolvedTextRecordKey)}}> Resolve Text Record </button>
+        </div>
+
+        <p><span className='bold'>Address:</span> {resolvedTextRecordMessage} </p>
       </div>
 
       {/* Wrap Name */}
       <div className='block'>
-        <h2> Wrap Name (in progress) </h2>
+        <h2> Wrap Name (0.0003 Gas) </h2>
 
-        <p> Wrapping a name means turning it into an ERC-1155 NFT via the ENS Name Wrapper smart contract, allowing the ENS domain to behave like an NFT. </p>
+        <p> Wrapping a name means turning it into an ERC-1155 NFT (NameWrapper Contract) from an ERC-721 (BaseRegistrar), allowing the ENS domain to behave like an NFT, unlocking powerful features, control, and composability. </p>
+
+        <ul>
+          <li> Fine-grained control over what can be done with the name using fuses. </li>
+          <li> Create subdomains, wrap those subdomains, assign permissions per subdomain. </li>
+        </ul>
+
+        <p><span className='bold'> ENS Domain Name (w/ .eth):</span></p>
+        <input type="text" onChange={(e) => setWrappedDomainName(e.target.value)} />
 
         <div>
-          <button onClick={() => {wrapName()}}> Wrap Name </button>
+          <button onClick={() => {wrapEnsDomainName(wrappedDomainName)}}> Wrap Name w/ MetaMask </button>
         </div>
-
-        <p><span className='bold'>Message:</span> {ensNameAddress} </p>
       </div>
 
+      {/* Create Subname */}
+      <div className='block'>
+        <h2> Create Subname (0.0002 Gas) </h2>
+
+        <p><span className='bold'> ENS Domain Name (w/ .eth):</span></p>
+        <input type="text" onChange={(e) => setDomainName(e.target.value)} />
+
+        <p><span className='bold'>Subname:</span></p>
+        <input type="text" onChange={(e) => setSubname(e.target.value)} />
+
+        <div>
+          <button onClick={() => {createSubname(domainName, subname)}}> Create Subname </button>
+        </div>
+      </div>
+
+      {/* Features */}
       <h2> Features </h2>
 
-      {/* To Add */}
       <div className='block user'>
         <h2> To Add </h2>
 
