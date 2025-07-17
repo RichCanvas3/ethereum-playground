@@ -58,7 +58,7 @@ A playground to experiment with all things Ethereum.
 
 ### Other
 
-- [Remix](https://remix-project.org/?lang=en) - A powerful, open source tool that helps you write Solidity contracts straight from the browser
+- [Remix](https://remix-project.org/?lang=en) - A powerful, open source tool that helps you write Solidity contracts straight from the browser.
 
 ## Local Setup
 
@@ -94,4 +94,17 @@ open http://localhost:5173/
 
 npm run build
 npm run dev
+```
+
+## Deploying a Solidity Contract
+
+A contract address hosts a smart contract, which is a set of code stored on the blockchain that runs when predetermined conditions are met.
+
+Contracts are written in Solidity and need to be compiled. This can be done using Remix or Hardhat.
+
+ABI -
+Bytecode -
+
+```
+node src/scripts/deploy.js
 ```
